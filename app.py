@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import math
+import os
 import sqlite3
 import unicodedata
 import uuid
@@ -21,7 +22,7 @@ from reportlab.platypus import Flowable, Image, Paragraph, SimpleDocTemplate, Sp
 app = Flask(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "aguaviva_local.sqlite3"
+DB_PATH = Path(os.getenv("AGUAVIVA_DB_PATH", BASE_DIR / "aguaviva_local.sqlite3"))
 PDF_OUTPUT_DIR = BASE_DIR / "output" / "pdf"
 APP_ICON_PATH = BASE_DIR / "static" / "icon_COATI.png"
 DEVELOPER_CREDIT = "Desenvolvido por: ACT - Soluções para Pessoas"
@@ -192,13 +193,17 @@ INDICATOR_LABELS = {
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
+    conn.execute("pragma busy_timeout = 30000")
+    conn.execute("pragma foreign_keys = on")
     return conn
 
 
 def init_db():
     with get_db() as conn:
+        conn.execute("pragma journal_mode = wal")
         conn.executescript(
             """
             create table if not exists cached_records (
@@ -239,16 +244,14 @@ def init_db():
             );
             """
         )
-        count = conn.execute("select count(*) from formulas").fetchone()[0]
-        if count == 0:
-            now = datetime.now().isoformat(timespec="seconds")
-            conn.executemany(
-                "insert into formulas (id, name, expression, created_at) values (?, ?, ?, ?)",
-                [
-                    (str(uuid.uuid4()), "Percentual do score", "{SCORE} / 24 * 100", now),
-                    (str(uuid.uuid4()), "IQA ponderado", "{IQA}", now),
-                ],
-            )
+        now = datetime.now().isoformat(timespec="seconds")
+        conn.executemany(
+            "insert or ignore into formulas (id, name, expression, created_at) values (?, ?, ?, ?)",
+            [
+                ("formula_percentual_score", "Percentual do score", "{SCORE} / 24 * 100", now),
+                ("formula_iqa_ponderado", "IQA ponderado", "{IQA}", now),
+            ],
+        )
 
 
 def get_meta_value(key, default=""):
@@ -757,7 +760,7 @@ def draw_pdf_footer(canvas, doc):
 
 def build_report_pdf(context):
     PDF_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = PDF_OUTPUT_DIR / "relatorio_dashboard.pdf"
+    output_path = PDF_OUTPUT_DIR / f"relatorio_dashboard_{uuid.uuid4().hex}.pdf"
     doc = SimpleDocTemplate(
         str(output_path),
         pagesize=A4,
@@ -947,7 +950,7 @@ def dashboard_pdf():
     cidade = request.args.get("cidade", "").strip()
     context = dashboard_context(cidade)
     output_path = build_report_pdf(context)
-    return send_file(output_path, as_attachment=True, download_name=output_path.name)
+    return send_file(output_path, as_attachment=True, download_name="relatorio_dashboard.pdf")
 
 
 @app.get("/formulas")
@@ -1045,4 +1048,4 @@ init_db()
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=True)

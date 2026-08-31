@@ -20,6 +20,23 @@ Abra:
 http://127.0.0.1:5000
 ```
 
+## Executar em producao com WSGI
+
+Para publicar em ambiente com multiplos usuarios, use Gunicorn como servidor WSGI:
+
+```bash
+gunicorn wsgi:app --config gunicorn.conf.py
+```
+
+No Render, configure:
+
+```text
+Build Command: pip install -r requirements.txt
+Start Command: gunicorn wsgi:app --config gunicorn.conf.py
+```
+
+O arquivo `gunicorn.conf.py` usa a porta informada em `PORT` e permite ajustar concorrencia com `WEB_CONCURRENCY` e `GUNICORN_THREADS`.
+
 ## Funcionalidades
 
 - cadastro do ponto de monitoramento;
