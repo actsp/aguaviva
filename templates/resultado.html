@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resultado do Envio</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="result-page">
+      <section class="panel result">
+        <div class="result-brand">
+          <img class="brand-logo" src="{{ url_for('static', filename='icon_COATI.png') }}" alt="COATI">
+          <strong>Agua Viva</strong>
+        </div>
+        <p class="status {{ status }}">{{ message }}</p>
+        <h1>URL gerada</h1>
+        <textarea readonly rows="8">{{ generated_url }}</textarea>
+        <div class="actions split">
+          <a class="button secondary" href="{{ url_for('index') }}">Novo registro</a>
+          <a class="button" href="{{ generated_url }}" target="_blank" rel="noreferrer">Abrir URL</a>
+        </div>
+        <footer class="developer-credit result-credit">
+          Desenvolvido por: ACT - Soluções para Pessoas
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

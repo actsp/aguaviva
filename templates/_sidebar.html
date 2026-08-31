@@ -1,0 +1,27 @@
+<aside class="sidebar">
+  <div class="brand">
+    <img class="brand-logo" src="{{ url_for('static', filename='icon_COATI.png') }}" alt="COATI">
+    <div>
+      <strong>Agua Viva</strong>
+      <span>Monitoramento ambiental</span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a class="{{ 'active' if active == 'registro' else '' }}" href="{{ url_for('index') }}">Novo ponto</a>
+    <a class="{{ 'active' if active == 'dashboard' else '' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a class="{{ 'active' if active == 'mapa' else '' }}" href="{{ url_for('mapa') }}">Mapa</a>
+    <a class="{{ 'active' if active == 'formulas' else '' }}" href="{{ url_for('formulas') }}">Formulas</a>
+    <a class="{{ 'active' if active == 'admin' else '' }}" href="{{ url_for('admin') }}">Admin</a>
+    <a class="{{ 'active' if active == 'perfil' else '' }}" href="{{ url_for('perfil') }}">Perfil{% if pending_count %} ({{ pending_count }}){% endif %}</a>
+  </nav>
+
+  <div class="sidebar-note">
+    <strong>Google Forms + Sheets</strong>
+    <span>Salva no Forms, consulta o CSV publicado e usa cache local quando preciso.</span>
+  </div>
+
+  <footer class="developer-credit">
+    Desenvolvido por: ACT - Soluções para Pessoas
+  </footer>
+</aside>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agua Viva - Mapa</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="{{ url_for('static', filename='mapa.js') }}"></script>
+  </head>
+  <body>
+    <main class="shell">
+      {% include "_sidebar.html" %}
+      <section class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Mapa</p>
+            <h1>Pontos monitorados</h1>
+          </div>
+          <form method="post" action="{{ url_for('sincronizar') }}">
+            <button type="submit">Sincronizar</button>
+          </form>
+        </header>
+
+        <section class="panel map-panel">
+          <div id="map" data-points='{{ records | tojson }}'></div>
+          <div class="map-empty" id="map-empty">Carregando mapa...</div>
+        </section>
+
+        <section class="stats-grid">
+          {% for label, total in stats.items() if total %}
+            <article class="panel stat-card">
+              <span>{{ label }}</span>
+              <strong>{{ total }}</strong>
+            </article>
+          {% endfor %}
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <h2>Dados carregados</h2>
+              <p class="hint">Fonte: {{ "Google Sheets online" if source == "online" else "cache SQLite local" }}{% if last_sync %} | ultima atualizacao: {{ last_sync }}{% endif %}</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ponto</th>
+                  <th>Data</th>
+                  <th>Classificacao</th>
+                  <th>IQA</th>
+                  <th>Coordenadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in records %}
+                  <tr>
+                    <td>{{ record.nome or "-" }}</td>
+                    <td>{{ record.data or "-" }}</td>
+                    <td>{{ record.classificacao or "Pendente" }}</td>
+                    <td>{{ record.iqa or "-" }}</td>
+                    <td>{{ record.lat or "-" }}, {{ record.lon or "-" }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5">Nenhum registro encontrado no Sheets ou no cache local.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

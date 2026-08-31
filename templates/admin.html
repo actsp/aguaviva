@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agua Viva - Admin</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      {% include "_sidebar.html" %}
+      <section class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Painel de administracao</h1>
+          </div>
+          <form method="post" action="{{ url_for('sincronizar') }}">
+            <button type="submit">Sincronizar</button>
+          </form>
+        </header>
+
+        <section class="admin-grid">
+          <article class="panel admin-card">
+            <span>Registros no Sheets/cache</span>
+            <strong>{{ records|length }}</strong>
+          </article>
+          <article class="panel admin-card">
+            <span>Formulas locais</span>
+            <strong>{{ formulas_count }}</strong>
+          </article>
+          <article class="panel admin-card">
+            <span>Envios pendentes</span>
+            <strong>{{ pending|length }}</strong>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <h2>Integracoes Google</h2>
+              <p class="hint">Cole a URL modelo pre-preenchida do Google Forms para trocar a conta ou formulario de destino.</p>
+            </div>
+          </div>
+
+          {% if config_message %}
+            <div class="status {{ config_status }}">
+              {{ config_message }}
+            </div>
+          {% endif %}
+
+          <form method="post" action="{{ url_for('salvar_configuracoes_admin') }}" class="form admin-config-form">
+            <label>
+              <span>URL modelo do Google Forms</span>
+              <textarea name="forms_template_url" rows="6" required>{{ forms_template_url }}</textarea>
+            </label>
+
+            <label>
+              <span>URL CSV publica do Google Sheets</span>
+              <input name="sheets_csv_url" type="url" required value="{{ sheets_csv_url }}">
+            </label>
+
+            <div class="config-actions">
+              <button type="submit">Salvar configuracoes</button>
+              <a class="ghost-button" href="{{ forms_action_url }}" target="_blank" rel="noreferrer">Abrir Forms</a>
+            </div>
+          </form>
+
+          <div class="table-wrap config-map">
+            <table>
+              <thead>
+                <tr>
+                  <th>Campo do sistema</th>
+                  <th>Campo Google Forms</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for local_name, google_entry in field_map.items() %}
+                  <tr>
+                    <td>{{ local_name }}</td>
+                    <td>{{ google_entry }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Classificacoes</h2>
+          <div class="stats-grid compact">
+            {% for label, total in stats.items() %}
+              <article class="stat-card flat">
+                <span>{{ label }}</span>
+                <strong>{{ total }}</strong>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Fila local</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Criado em</th>
+                  <th>Erro</th>
+                  <th>URL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in pending %}
+                  <tr>
+                    <td>{{ item.created_at }}</td>
+                    <td>{{ item.last_error }}</td>
+                    <td><a href="{{ item.generated_url }}" target="_blank" rel="noreferrer">abrir</a></td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="3">Nao ha envios pendentes.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

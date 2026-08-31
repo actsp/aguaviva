@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agua Viva - Novo Ponto</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img class="brand-logo" src="{{ url_for('static', filename='icon_COATI.png') }}" alt="COATI">
+          <div>
+            <strong>Agua Viva</strong>
+            <span>Monitoramento ambiental</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="active" href="{{ url_for('index') }}">Novo ponto</a>
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('mapa') }}">Mapa</a>
+          <a href="{{ url_for('formulas') }}">Formulas</a>
+          <a href="{{ url_for('admin') }}">Admin</a>
+          <a href="{{ url_for('perfil') }}">Perfil{% if pending_count %} ({{ pending_count }}){% endif %}</a>
+        </nav>
+
+        <div class="sidebar-note">
+          <strong>Google Forms + Sheets</strong>
+          <span>Salva no Forms, consulta o CSV publicado e usa cache local quando preciso.</span>
+        </div>
+        <footer class="developer-credit">
+          Desenvolvido por: ACT - Soluções para Pessoas
+        </footer>
+      </aside>
+
+      <section class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Coleta de campo</p>
+            <h1>Novo ponto de monitoramento</h1>
+          </div>
+          <div class="connection-pill">
+            <span></span>
+            Google Forms
+          </div>
+        </header>
+
+        <form id="agua-form" method="post" action="{{ url_for('salvar') }}" class="form" autocomplete="on">
+          <section id="registro" class="panel intro-panel">
+            <div class="intro-icon">+</div>
+            <div>
+              <h2>Identificacao e localizacao</h2>
+              <p>Cadastre o local da coleta e registre a avaliacao inicial em um unico fluxo.</p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-head">
+              <h2>Identificacao</h2>
+            </div>
+            <div class="grid two">
+              <label>
+                <span>Nome do ponto</span>
+                <input name="nome" type="text" required placeholder="Ex: Nascente do sitio">
+              </label>
+
+              <label>
+                <span>Endereco ou referencia</span>
+                <input name="endereco" type="text" placeholder="Ex: Estrada municipal, ponte, margem direita">
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-head">
+              <h2>Localizacao</h2>
+              <button type="button" class="ghost-button" id="use-location">Usar GPS</button>
+            </div>
+            <p class="hint" id="location-status">Informe as coordenadas manualmente ou use o GPS do navegador.</p>
+            <div class="grid two">
+              <label>
+                <span>Latitude</span>
+                <input name="lat" id="lat" type="number" step="any" required placeholder="-23.55052">
+              </label>
+
+              <label>
+                <span>Longitude</span>
+                <input name="lon" id="lon" type="number" step="any" required placeholder="-46.63331">
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-head">
+              <h2>Data da coleta</h2>
+              <button type="button" class="ghost-button" id="today-button">Usar hoje</button>
+            </div>
+            <div class="date-control">
+              <button type="button" class="icon-button" data-date-step="-1" aria-label="Dia anterior">&lt;</button>
+              <input name="data" id="data" type="date" value="{{ today }}" required>
+              <button type="button" class="icon-button" data-date-step="1" aria-label="Proximo dia">&gt;</button>
+            </div>
+          </section>
+
+          <section id="sensorial" class="group-title">
+            <h2>Avaliacao sensorial</h2>
+          </section>
+
+          {% for parametro in parametros if parametro.group == "sensorial" %}
+            <section class="panel nota-card" data-parametro="{{ parametro.key }}">
+              <h3>{{ parametro.title }}</h3>
+              <div class="nota-options">
+                {% for option in parametro.options %}
+                  <label class="nota-option nota-{{ option.value }}">
+                    <input type="radio" name="{{ parametro.key }}" value="{{ option.value }} - {{ option.label }}" data-score="{{ option.value }}" required>
+                    <span class="nota-number">{{ option.value }}</span>
+                    <span>{{ option.label }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </section>
+          {% endfor %}
+
+          <section id="fisico" class="group-title">
+            <h2>Fisico-quimico</h2>
+          </section>
+
+          {% for parametro in parametros if parametro.group == "fisico_quimico" %}
+            <section class="panel nota-card" data-parametro="{{ parametro.key }}">
+              <h3>{{ parametro.title }}</h3>
+              <div class="nota-options">
+                {% for option in parametro.options %}
+                  <label class="nota-option nota-{{ option.value }}">
+                    <input type="radio" name="{{ parametro.key }}" value="{{ option.value }} - {{ option.label }}" data-score="{{ option.value }}" required>
+                    <span class="nota-number">{{ option.value }}</span>
+                    <span>{{ option.label }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </section>
+          {% endfor %}
+
+          <section class="panel">
+            <div class="section-head">
+              <div>
+                <h2>Oxigenio dissolvido (OD)</h2>
+                <p class="hint">Opcional, em mg/L. Quando informado, compoe o IQA de campo.</p>
+              </div>
+            </div>
+            <label>
+              <span>OD</span>
+              <input name="od" id="od" type="number" step="any" min="0" max="50" placeholder="Ex: 5.2">
+            </label>
+          </section>
+
+          <section class="panel">
+            <h2>Observacoes</h2>
+            <label>
+              <span>Notas adicionais</span>
+              <textarea name="obs" rows="4" placeholder="Descreva condicoes do tempo, acesso, ocorrencias ou detalhes da coleta."></textarea>
+            </label>
+          </section>
+
+          <input type="hidden" name="iqa" id="iqa">
+          <input type="hidden" name="classificacao" id="classificacao">
+
+          <section id="resultado" class="panel result-card">
+            <div>
+              <p class="eyebrow">Previa</p>
+              <h2 id="preview-class">Pendente</h2>
+              <p id="preview-description">Preencha os 8 parametros para calcular score, IQA e classificacao.</p>
+            </div>
+            <div class="metrics">
+              <div>
+                <span>Score</span>
+                <strong id="preview-score">--/24</strong>
+              </div>
+              <div>
+                <span>IQA</span>
+                <strong id="preview-iqa">--/100</strong>
+              </div>
+            </div>
+          </section>
+
+          <div class="actions">
+            <button type="submit">Salvar</button>
+            <button type="button" class="secondary" id="clear-draft">Limpar rascunho</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

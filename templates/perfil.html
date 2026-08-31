@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agua Viva - Perfil</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      {% include "_sidebar.html" %}
+      <section class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Perfil</p>
+            <h1>Conta e sincronizacao</h1>
+          </div>
+        </header>
+
+        <section class="profile-card panel">
+          <div class="avatar">AV</div>
+          <h2>Operador Agua Viva</h2>
+          <p class="hint">Perfil local para coleta via Flask. Autenticacao e grupos da versao original foram simplificados nesta evolucao.</p>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <h2>Sincronizacao</h2>
+              <p class="hint">Fonte atual: {{ "Google Sheets online" if source == "online" else "cache SQLite local" }}{% if last_sync %} | ultima leitura: {{ last_sync }}{% endif %}</p>
+            </div>
+            <form method="post" action="{{ url_for('sincronizar') }}">
+              <button type="submit">Sincronizar agora</button>
+            </form>
+          </div>
+          <p class="hint">Registros carregados: {{ records|length }}. Envios locais pendentes: {{ pending|length }}.</p>
+        </section>
+
+        <section class="panel">
+          <h2>Google Sheets CSV</h2>
+          <textarea readonly rows="4">{{ sheets_url }}</textarea>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agua Viva - Dashboard</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      {% include "_sidebar.html" %}
+      <section class="content wide-content dashboard-page">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Dashboard IQA</p>
+            <h1>Classificações consolidadas</h1>
+          </div>
+          <div class="topbar-actions">
+            <a class="button" href="{{ url_for('dashboard_pdf', cidade=selected_cidade) }}">Gerar PDF</a>
+            <form method="post" action="{{ url_for('sincronizar') }}">
+              <button type="submit">Sincronizar</button>
+            </form>
+          </div>
+        </header>
+
+        <section class="panel dashboard-filter">
+          <form method="get" action="{{ url_for('dashboard') }}" class="filter-form">
+            <label>
+              <span>Filtrar por cidade</span>
+              <select name="cidade">
+                <option value="">Todas as cidades</option>
+                {% for cidade in cidades %}
+                  <option value="{{ cidade }}" {{ "selected" if cidade == selected_cidade else "" }}>{{ cidade }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <button type="submit">Aplicar</button>
+            {% if selected_cidade %}
+              <a class="button secondary" href="{{ url_for('dashboard') }}">Limpar</a>
+            {% endif %}
+          </form>
+          <p class="hint">
+            Exibindo {{ filtered_records_count }} de {{ total_records }} registro(s)
+            {% if selected_cidade %} em {{ selected_cidade }}{% endif %}.
+          </p>
+        </section>
+
+        <section class="indicator-grid">
+          {% for item in dashboard.indicator_rows %}
+            <article class="indicator-card" style="--indicator-color: {{ item.color }};">
+              <div class="indicator-top">
+                <span class="indicator-dot"></span>
+                <strong>{{ item.indicator_label }}</strong>
+              </div>
+              <div class="indicator-value">{{ "%.1f"|format(item.percentual)|replace(".", ",") }}%</div>
+              <div class="indicator-meta">
+                <span>{{ item.quantidade }} de {{ dashboard.total }}</span>
+                <span>classificações</span>
+              </div>
+            </article>
+          {% endfor %}
+        </section>
+
+        <section class="dashboard-board single-dashboard">
+          <div class="single-chart-layout">
+            <article class="donut-card single">
+              <div class="donut" style="--segments: {{ dashboard.gradient }};">
+                <div class="donut-hole">
+                  <strong>{{ dashboard.total }}</strong>
+                  <span>classificações</span>
+                </div>
+              </div>
+            </article>
+
+            <div class="dashboard-legend legend-with-values">
+              {% for item in dashboard.rows %}
+                <div class="legend-row">
+                  <span class="legend-dot" style="background: {{ item.color }}"></span>
+                  <strong>{{ item.label }}</strong>
+                  <em>{{ item.quantidade }}</em>
+                  <b>{{ "%.1f"|format(item.percentual)|replace(".", ",") }}%</b>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="dashboard-divider"></div>
+
+          <div class="dashboard-table-wrap">
+            <table class="dashboard-table single-table">
+              <thead>
+                <tr>
+                  <th>IQA</th>
+                  <th>Quantidade</th>
+                  <th>Percentual</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in dashboard.rows %}
+                  <tr>
+                    <td>
+                      <span class="table-dot" style="background: {{ item.color }}"></span>
+                      {{ item.label }}
+                    </td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>{{ "%.1f"|format(item.percentual)|replace(".", ",") }}%</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td>{{ dashboard.total }}</td>
+                  <td>{{ "100%" if dashboard.total else "0%" }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel dashboard-source">
+          <div class="section-head">
+            <div>
+              <h2>Dados obtidos do Google Sheets</h2>
+              <p class="hint">Fonte: {{ "Google Sheets online" if source == "online" else "cache SQLite local" }}{% if last_sync %} | ultima atualizacao: {{ last_sync }}{% endif %}</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Ponto</th>
+                  <th>Cidade</th>
+                  <th>Classificação</th>
+                  <th>IQA</th>
+                  <th>LAT</th>
+                  <th>LON</th>
+                  <th>Observações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in records %}
+                  <tr>
+                    <td>{{ record.data or record.timestamp or "-" }}</td>
+                    <td>{{ record.nome or "-" }}</td>
+                    <td>{{ record.cidade or "-" }}</td>
+                    <td>{{ record.classificacao or "Pendente" }}</td>
+                    <td>{{ record.iqa or "-" }}</td>
+                    <td>{{ record.lat or "-" }}</td>
+                    <td>{{ record.lon or "-" }}</td>
+                    <td>{{ record.obs or "-" }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="8">Nenhum dado encontrado no CSV, cache local ou filtro selecionado.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

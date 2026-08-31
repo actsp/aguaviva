@@ -1,0 +1,7 @@
+__pycache__/
+.venv/
+*.pyc
+.env
+aguaviva_local.sqlite3
+output/pdf/
+tmp/

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agua Viva - Formulas</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon_COATI.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      {% include "_sidebar.html" %}
+      <section class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Formulas</p>
+            <h1>Calculos auxiliares</h1>
+          </div>
+        </header>
+
+        <section class="panel">
+          <h2>Nova formula</h2>
+          <form method="post" action="{{ url_for('salvar_formula') }}" class="inline-form">
+            <label>
+              <span>Nome</span>
+              <input name="name" required placeholder="Ex: Percentual do score">
+            </label>
+            <label>
+              <span>Expressao</span>
+              <input name="expression" required placeholder="Ex: {SCORE} / 24 * 100">
+            </label>
+            <button type="submit">Salvar</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Variaveis disponiveis</h2>
+          <div class="chips">
+            {% for item in ["{RESIDUOS}", "{ODOR}", "{ESPUMAS}", "{MATA_CILIAR}", "{PH}", "{NITRITO}", "{FOSFATO}", "{TURBIDEZ}", "{OD}", "{IQA}", "{SCORE}"] %}
+              <span>{{ item }}</span>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="formula-list">
+          {% for formula in formulas %}
+            <article class="panel formula-card">
+              <div>
+                <h2>{{ formula.name }}</h2>
+                <code>{{ formula.expression }}</code>
+              </div>
+              <form method="post" action="{{ url_for('deletar_formula', formula_id=formula.id) }}">
+                <button type="submit" class="secondary">Excluir</button>
+              </form>
+            </article>
+          {% else %}
+            <article class="panel">Nenhuma formula cadastrada.</article>
+          {% endfor %}
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
