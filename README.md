@@ -25,17 +25,17 @@ http://127.0.0.1:5000
 Para publicar em ambiente com multiplos usuarios, use Gunicorn como servidor WSGI:
 
 ```bash
-gunicorn wsgi:app --config gunicorn.conf.py
+gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-1} --threads ${GUNICORN_THREADS:-2} --timeout ${GUNICORN_TIMEOUT:-120}
 ```
 
 No Render, configure:
 
 ```text
 Build Command: pip install -r requirements.txt
-Start Command: gunicorn wsgi:app --config gunicorn.conf.py
+Start Command: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers ${WEB_CONCURRENCY:-1} --threads ${GUNICORN_THREADS:-2} --timeout ${GUNICORN_TIMEOUT:-120}
 ```
 
-O arquivo `gunicorn.conf.py` usa a porta informada em `PORT` e permite ajustar concorrencia com `WEB_CONCURRENCY` e `GUNICORN_THREADS`.
+Tambem ha um arquivo `gunicorn.conf.py` no projeto, mas o comando acima evita erro caso o provedor nao carregue o arquivo de configuracao pelo caminho esperado. Ajuste concorrencia com `WEB_CONCURRENCY` e `GUNICORN_THREADS`.
 
 ## Funcionalidades
 
